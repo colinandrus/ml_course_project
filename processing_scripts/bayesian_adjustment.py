@@ -1,5 +1,8 @@
 ### To compute Bayesian-adjusted grant/appeal/appeal-grant rates (see notebook for methodology and description)
 
+import numpy as np 
+import pandas as pd 
+
 # calibrate beta priors 
 
 def calibrate_beta_priors(aggregate_mean): 
