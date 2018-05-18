@@ -128,15 +128,16 @@ class Dummify(BaseEstimator, TransformerMixin):
         return output_data
 
 
-def transform_features(data, df, cat_features, num_features, impute_methods): 
+# method to subset and transform data (impute, convert, dummify)
+
+def transform_features(df, appeals_df, cat_features, num_features, impute_methods): 
     """ Impute, convert and dummify features 
         TODO: save cat_feature_values to pickle so that we don't have to read df 
     """  
     
-    # subsets features we are interested in 
-    cat_feature_values = dict([(f, [str(x) for x in df[f].dropna().unique().tolist()]) for f in cat_features])
-    data = data[cat_features + num_features].copy() 
-
+    # makes sure dummified values match 
+    cat_feature_values = dict([(f, [str(x) for x in appeals_df[f].dropna().unique().tolist()]) for f in cat_features])
+    
     # make pipeline 
     data_pipeline = Pipeline([
         ('impute', ImputeMissingData(impute_methods, num_features, cat_features)),         
@@ -145,67 +146,71 @@ def transform_features(data, df, cat_features, num_features, impute_methods):
     ])
     
     # run pipeline 
-    X = data_pipeline.fit_transform(data)
+    X = data_pipeline.fit_transform(df)
     
     return X
 
-# method to split train-test and transform features (for aggregate model)
 
-def get_model_data(df, label, cat_features, num_features, impute_methods, test_size=0.2, print_summary=False): 
+# method to split train-test and transform features 
+
+def get_model_data(df, appeals_df, label, cat_features, num_features, impute_methods, test_size=0.2, print_summary=False): 
     """ Subsets features used, splits into train-test, and transforms features """
     
     # subsets features we are interested in 
     data = df[cat_features + num_features + [label]].copy() 
+    appeals_df = appeals_df[cat_features + num_features].copy() 
     
     # train test split 
     X, y = data.drop(label, axis=1).copy(), data[label].copy() 
     x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=test_size, random_state=44)
 
     # transform features
-    X_train = transform_features(x_train, df, cat_features, num_features, impute_methods)
-    X_test = transform_features(x_test, df, cat_features, num_features, impute_methods)
+    X_train = transform_features(x_train, appeals_df, cat_features, num_features, impute_methods)
+    X_test = transform_features(x_test, appeals_df, cat_features, num_features, impute_methods)
 
     if print_summary:
         print("Training Data: {} | Test Data: {}".format(X_train.shape, X_test.shape)) 
     
     return X_train, X_test, y_train, y_test 
 
-# method to split train-test and transform features (for sequential models)
 
-def get_model_data_by_year(df, appeals_df, label, unique_id, cat_features, num_features, impute_methods, predict_year): 
-    """ Generates features on data for years prior to predict_year """
+# # method to split train-test and transform features (for sequential models)
 
-    # add 'datAppealFiled_year' if not in num_features 
-    if 'datAppealFiled_year' not in num_features: 
-        num_features_ = num_features + ['datAppealFiled_year'] 
-    else: 
-        num_features_ = num_features 
+# def get_model_data_by_year(df, appeals_df, label, unique_id, cat_features, num_features, impute_methods, predict_year): 
+#     """ Generates features on data for years prior to predict_year """
 
-    # subsets features we are interested in 
-    cat_feature_values = dict([(f, [str(x) for x in df[f].dropna().unique().tolist()]) for f in cat_features]) 
-    data = df.set_index(unique_id)
-    if label is not None: 
-        data = data[cat_features + num_features_ + [label]].copy() 
-    else: 
-        data = data[cat_features + num_features].copy()
+#     # add 'datAppealFiled_year' if not in num_features 
+#     if 'datAppealFiled_year' not in num_features: 
+#         num_features_ = num_features + ['datAppealFiled_year'] 
+#     else: 
+#         num_features_ = num_features 
 
-    # train test split 
-    train_data = data[data['datAppealFiled_year'] < predict_year]
-    test_data = data[data['datAppealFiled_year'] == predict_year]
+#     # subsets features we are interested in 
+#     cat_feature_values = dict([(f, [str(x) for x in df[f].dropna().unique().tolist()]) for f in cat_features]) 
+#     data = df.set_index(unique_id)
+#     if label is not None: 
+#         data = data[cat_features + num_features_ + [label]].copy() 
+#     else: 
+#         data = data[cat_features + num_features].copy()
+
+#     # train test split 
+#     train_data = data[data['datAppealFiled_year'] < predict_year]
+#     test_data = data[data['datAppealFiled_year'] == predict_year]
     
-    # return y=None if label is not passed (used for parsing data for pure predictions)
-    if label is not None: 
-        x_train, y_train = train_data.drop(label, axis=1).copy(), train_data[label].copy() 
-        x_test, y_test = test_data.drop(label, axis=1).copy(), test_data[label].copy() 
-    else: 
-        x_train, y_train = train_data, None 
-        x_test, y_test = test_data, None 
+#     # return y=None if label is not passed (used for parsing data for pure predictions)
+#     if label is not None: 
+#         x_train, y_train = train_data.drop(label, axis=1).copy(), train_data[label].copy() 
+#         x_test, y_test = test_data.drop(label, axis=1).copy(), test_data[label].copy() 
+#     else: 
+#         x_train, y_train = train_data, None 
+#         x_test, y_test = test_data, None 
 
-    # transform 
-    X_train = transform_features(x_train, appeals_df, cat_features, num_features, impute_methods)
-    X_test = transform_features(x_test, appeals_df, cat_features, num_features, impute_methods)
+#     # transform 
+#     X_train = transform_features(x_train, appeals_df, cat_features, num_features, impute_methods)
+#     X_test = transform_features(x_test, appeals_df, cat_features, num_features, impute_methods)
 
-    return X_train, X_test, y_train, y_test 
+#     return X_train, X_test, y_train, y_test 
+
 
 # method to return model evaluation metrics 
 
@@ -286,7 +291,7 @@ def train_model(model, X_train, y_train, X_test, y_test,
         print(metrics)
     if print_charts: 
         plot_metrics(truth, pred)
-    return model, metrics, fi, cfi, truth, pred   
+    return model, metrics, fi, cfi, truth, pred    
 
 
 # method to plot ROC and Precision-Recall
@@ -299,7 +304,8 @@ def plot_metrics(truth, pred):
     plt.subplot(1, 2, 2)
     plot_precision_recall(truth, pred) 
 
- # method to get feature importances 
+
+# method to get feature importances 
 
 def get_feature_importances(model, X_train):
     
@@ -314,3 +320,135 @@ def get_feature_importances(model, X_train):
     cfi = cfi.groupby('parent_feature')['importance'].sum().sort_values(ascending=False) 
     
     return fi, cfi 
+
+
+# partial dependence plots 
+
+def pdp_plot(model, X_train, feature, feature_is_cat=False, isolate_samples=10000, plot_samples=500, top_n=20, fi=None): 
+    """
+    Uses pdpbox package to plot partial dependence plot. Accepts trained classifier (model), X_train, 
+    and feature name as inputs. Feature chosen may be categorical, in which case the function will retrieve 
+    all the corresponding dummy variables. 
+    """ 
+    
+    # pdp requires monotonically increasing or decreasing index 
+    X_train = X_train.reset_index(drop=True)
+    
+    # if feature is categorical, 
+    if feature_is_cat: 
+        # generate list of dummy variable names
+        plot_feature = [x for x in X_train.columns if feature + ':::' in x]
+        # if too many dummy variables, limit to top_n by feature importance 
+        if len(plot_feature) > top_n: 
+            plot_feature = fi[plot_feature].sort_values(ascending=False)[:top_n].index.tolist() 
+    else: 
+        plot_feature = feature 
+
+    # use pdpbox methods 
+    pdp_isolate = pdp.pdp_isolate(model, X_train.sample(n=isolate_samples), plot_feature)
+    pdp.pdp_plot(pdp_isolate, feature, plot_org_pts=True, plot_lines=True, center=False, frac_to_plot=plot_samples)
+
+
+# get model data by year (for sequential models)
+
+def get_model_data_by_year(df, appeals_df, label, unique_id, cat_features, num_features, impute_methods, predict_year): 
+    """ Generates features on data for years prior to predict_year """
+
+    # add 'datAppealFiled_year' if not in num_features 
+    if 'datAppealFiled_year' not in num_features: 
+        num_features_ = num_features + ['datAppealFiled_year'] 
+    else: 
+        num_features_ = num_features 
+
+    # subsets features we are interested in 
+    cat_feature_values = dict([(f, [str(x) for x in df[f].dropna().unique().tolist()]) for f in cat_features]) 
+    data = df.set_index(unique_id)
+    if label is not None: 
+        data = data[cat_features + num_features_ + [label]].copy() 
+    else: 
+        data = data[cat_features + num_features].copy()
+
+    # train test split 
+    train_data = data[data['datAppealFiled_year'] < predict_year]
+    test_data = data[data['datAppealFiled_year'] == predict_year]
+    
+    # return y=None if label is not passed (used for parsing data for pure predictions)
+    if label is not None: 
+        x_train, y_train = train_data.drop(label, axis=1).copy(), train_data[label].copy() 
+        x_test, y_test = test_data.drop(label, axis=1).copy(), test_data[label].copy() 
+    else: 
+        x_train, y_train = train_data, None 
+        x_test, y_test = test_data, None 
+
+    # transform 
+    X_train = transform_features(x_train, appeals_df, cat_features, num_features, impute_methods)
+    X_test = transform_features(x_test, appeals_df, cat_features, num_features, impute_methods)
+
+    return X_train, X_test, y_train, y_test 
+
+
+# fit sequential models by using data from preceding years to predict next year's appeal outcomes 
+
+def fit_sequential_models(df, model, label, cat_features, num_features, impute_methods, 
+                          start_year, end_year, weight_decay=None, print_charts=False, print_metrics=True): 
+    """ Trains a sequence of models using data from preceeding years to test on current year 
+        TODO: modularize this if have time"""
+    
+    # initialize empty dictionary to collect all results 
+    sequential_results = {}
+    
+    # loop through each year to train model on data from preceeding years then test on current year 
+    for year in np.arange(start_year, end_year+1, 1): 
+        print("Training model to predict {} appeals...".format(year)) 
+        result = {} # initialize empty dictionary to collect result for each year 
+        X_train, X_test, y_train, y_test = get_model_data_by_year(
+            df, df, label='granted', unique_id='idnproceeding', cat_features=cat_features, num_features=num_features, 
+            impute_methods=impute_methods, predict_year=year) 
+        
+        # weight samples 
+        if weight_decay is not None:
+            print(weight_decay)
+            sample_weight = X_train['datAppealFiled_year'].apply(lambda x: weight_decay ** (year-x-1))
+        else: 
+            sample_weight = None 
+        
+        # datAppealFiled_year is included in X_train by default; remove if not in num_features
+        if 'datAppealFiled_year' not in num_features: 
+            X_train = X_train[[c for c in X_train.columns if c != 'datAppealFiled_year']]
+            X_test = X_test[[c for c in X_train.columns if c != 'datAppealFiled_year']]
+        else: 
+            pass 
+        
+        # save results to dictionary 
+        result['model'], result['metrics'], result['fi'], result['cfi'], result['truth'], result['pred'] = train_model(
+            MODEL, X_train, y_train, X_test, y_test, 
+            print_charts=print_charts, print_metrics=print_metrics, sample_weight=sample_weight) 
+        sequential_results[year] = result 
+        
+    # summarize model performance metrics 
+    metric_summary = pd.DataFrame.from_dict(sequential_results, orient='index')['metrics'].apply(pd.Series)
+    print(metric_summary)
+    print("Average model performance metrics:")
+    print(metric_summary.mean()) 
+    plot_sequential_performance(metric_summary)
+    
+    # average feature importances 
+    average_cfi = pd.DataFrame.from_dict(sequential_results, orient='index')['cfi']\
+                              .apply(pd.Series).mean().sort_values(ascending=False)
+    print("Average feature importances:")
+    print(average_cfi)     
+    
+    return metric_summary, average_cfi, sequential_results 
+
+
+# plot performance summary for sequential models 
+
+def plot_sequential_performance(sequential_metrics):
+    """ Plots AUC and Accuracy by test year """
+    plt.figure(figsize=(10, 4))
+    plt.plot(sequential_metrics['ROC AUC'])
+    plt.plot(sequential_metrics['Accuracy'])
+    plt.ticklabel_format(useOffset=False)
+    plt.title('Accuracy and AUC of Sequential Models')
+    plt.xlabel('Test Year')
+    plt.legend(loc='best') 
