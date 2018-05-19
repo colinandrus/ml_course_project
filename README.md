@@ -43,4 +43,16 @@ Next open your browser on your local machine at the local host port your chose e
 
 
 
+### Troubleshooting
+
+If you pass the token to the notebook and are still unable to access it, then you need to update your jupyter config file to accept incoming requests from all ip addresses.
+
+Open your jupyter notebook config file, typically located at /home/{your username}/.jupyter/jupyter_notebook_config.py
+
+If it's not there, then run `jupyter notebook --generate-config` to create it.
+
+```
+c.NotebookApp.allow_origin = '*'
+c.NotebookApp.ip = '0.0.0.0'
+```
 
