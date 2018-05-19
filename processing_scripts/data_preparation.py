@@ -12,7 +12,7 @@ print("Import & Merge Data")
 print("***************************************")
 
 # Imports 3 datasets used for project: (1) Master Proceedings as processed by Dunn, (2) Judge Bios, (3) Appeals
-DATAFOLDER = "~/Documents/data-science-coursework/nyu-ml/project/"
+DATAFOLDER = "/data/Dropbox/Data/Asylum_Courts/"
 
 # Master Proceedings (processed by Sagent/Dunn)
 master_dunn = pd.read_csv(os.path.join(DATAFOLDER,
@@ -25,19 +25,19 @@ master_dunn.rename(columns={'dec_type_string': 'original_dec_type_string',
 master_dunn.drop('Unnamed: 0', axis=1, inplace=True)
 
 ### Judge Bios
-judge_bio = pd.read_csv(os.path.join(DATAFOLDER, 'data/AsylumAdj/data/cleaned_judge_bios.csv'))
+judge_bio = pd.read_csv(os.path.join(DATAFOLDER, 'AsylumAdj/data/cleaned_judge_bios.csv'))
 
 # import main table
-tblAppeal = pd.read_csv(os.path.join(DATAFOLDER, 'data/raw/tblAppeal.csv'), low_memory=False)
+tblAppeal = pd.read_csv(os.path.join(DATAFOLDER, 'raw/tblAppeal.csv'), low_memory=False)
 
 # import lookup tables (Python 2.7)
-bia_appeal_category = pd.read_excel(os.path.join(DATAFOLDER, 'data/raw/BIA Appeal Data File code translations.xlsx'),
+bia_appeal_category = pd.read_excel(os.path.join(DATAFOLDER, 'raw/BIA Appeal Data File code translations.xlsx'),
                                     sheetname='BIA Appeal Category', skip_footer=7)
-bia_appeal_type = pd.read_excel(os.path.join(DATAFOLDER, 'data/raw/BIA Appeal Data File code translations.xlsx'),
+bia_appeal_type = pd.read_excel(os.path.join(DATAFOLDER, 'raw/BIA Appeal Data File code translations.xlsx'),
                                 sheetname='BIA Appeal Type', skip_footer=3)
-bia_decision_type = pd.read_excel(os.path.join(DATAFOLDER, 'data/raw/BIA Appeal Data File code translations.xlsx'),
+bia_decision_type = pd.read_excel(os.path.join(DATAFOLDER, 'raw/BIA Appeal Data File code translations.xlsx'),
                                   sheetname='BIA decision type', skip_footer=2)
-bia_decision_code = pd.read_excel(os.path.join(DATAFOLDER, 'data/raw/BIA Appeal Data File code translations.xlsx'),
+bia_decision_code = pd.read_excel(os.path.join(DATAFOLDER, 'raw/BIA Appeal Data File code translations.xlsx'),
                                   sheetname='BIA decision code', skip_footer=2)
 
 # join them
