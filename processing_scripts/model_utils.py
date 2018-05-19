@@ -177,7 +177,7 @@ def evaluate_model(truth, pred, print_cm=False):
     precision = precision_score(truth, (pred>0.5).astype(int))
     recall = recall_score(truth, (pred>0.5).astype(int))
     if print_cm: 
-        print "Confusion Matrix:"
+        print("Confusion Matrix:")
         print(confusion_matrix(truth, (pred>0.5).astype(int)))
     metrics = {'Accuracy': accuracy, 'ROC AUC': roc_auc, 'Log Loss': logloss, 
                'Precision': precision, 'Recall': recall}
