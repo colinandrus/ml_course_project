@@ -3,11 +3,11 @@ import pandas as pd
 import os
 import time
 
-print("***************************************")
-print("Start Data Preparation For the Asylum ")
-print("Appeals:")
+print("***********************************************")
+print("Start Data Preparation For the Asylum Appeals:")
 print("Import & Merge Data")
-print("***************************************")
+print("Note process takes ~8.5 minutes to complete")
+print("***********************************************")
 
 start_time = time.time()
 
