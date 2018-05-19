@@ -385,6 +385,9 @@ print("***************************************")
 print("Outputting processed dataset to csv,")
 print("pickle, and dta")
 print("***************************************")
+
+DATA_OUT_FOLDER = '/home/dustingodevais/asylum_project_runnable_code'
+
 # ID features
 id_features = ['idncase', 'idnproceeding', 'idnAppeal']
 
@@ -420,27 +423,27 @@ features_to_keep = id_features + respondent_features + judge_features + proceedi
 print(features_to_keep)
 
 # output appeals dataset to csv
-appeals_fp = os.path.join(DATAFOLDER, 'data_for_model/appeals_data_final.csv')
+appeals_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/appeals_data_final.csv')
 appeals_final = appeals[features_to_keep + ['granted']]
 appeals_final.to_csv(appeals_fp, encoding='utf-8', index=False)
 appeals_final.info()
 
 # output non-appeals dataset to csv
-non_appeals_fp = os.path.join(DATAFOLDER, 'data_for_model/non_appeals_data_final.csv')
+non_appeals_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/non_appeals_data_final.csv')
 non_appeals_final = non_appeals[features_to_keep]
 non_appeals_final.to_csv(non_appeals_fp, encoding='utf-8', index=False)
 non_appeals_final.info()
 
 # also save as pkl
-appeals_pkl_fp = os.path.join(DATAFOLDER, 'data_for_model/appeals_data_final.pkl')
+appeals_pkl_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/appeals_data_final.pkl')
 appeals_final.to_pickle(appeals_pkl_fp)
-non_appeals_pkl_fp = os.path.join(DATAFOLDER, 'data_for_model/non_appeals_data_final.pkl')
+non_appeals_pkl_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/non_appeals_data_final.pkl')
 non_appeals_final.to_pickle(non_appeals_pkl_fp)
 
 # save as .dta
-appeals_dta_fp = os.path.join(DATAFOLDER, 'data_for_model/appeals_data_final.dta')
+appeals_dta_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/appeals_data_final.dta')
 appeals_final.to_stata(appeals_dta_fp)
-non_appeals_dta_fp = os.path.join(DATAFOLDER, 'data_for_model/non_appeals_data_final.dta')
+non_appeals_dta_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/non_appeals_data_final.dta')
 non_appeals_final.to_stata(non_appeals_dta_fp)
 
 print()
