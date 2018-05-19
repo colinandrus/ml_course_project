@@ -75,7 +75,7 @@ print(df.columns.tolist())
 df.info()
 
 # Summarize Funnel Stats
-
+print()
 print("***************************************")
 print("Summarize Funnel Stats")
 print("***************************************")
@@ -118,7 +118,7 @@ print("Of the {} denied proceedings, {} ({:.1f}%) appealed the decision.".format
 # get appeals vs. non-appeals datasets
 appeals = denied_cases[denied_cases['appealed'] == 1].copy()
 non_appeals = denied_cases[denied_cases['appealed'] == 0].copy()
-
+print()
 print("***************************************")
 print("Finalize Scope of Appeals")
 print("***************************************")
@@ -175,7 +175,7 @@ successful_appeals = appeals['granted'].sum()
 successful_appeals_pct = float(successful_appeals) / total_appeals
 print("Of the {} appeals, {} ({:.1f}%) were successful.".format(total_appeals, successful_appeals,
                                                                 successful_appeals_pct * 100))
-
+print()
 print("***************************************")
 print("Additional Feature Engineering")
 print("***************************************")
@@ -215,6 +215,7 @@ lang_to_retain = get_feature_values_to_retain(appeals, feature_name='lang', min_
 appeals['lang_grouped'] = np.where(appeals['lang'].isin(lang_to_retain), appeals['lang'], 'other')
 non_appeals['lang_grouped'] = np.where(non_appeals['lang'].isin(lang_to_retain), non_appeals['lang'], 'other')
 
+print()
 print("***************************************")
 print("Additional Feature Engineering: judges")
 print("***************************************")
@@ -267,6 +268,7 @@ non_appeals['datAppealFiled_month'] = non_appeals['datAppealFiled_dt'].dt.month
 non_appeals['datAppealFiled_year_month'] = (non_appeals['datAppealFiled_year'] - 1970) + non_appeals[
     'datAppealFiled_month']
 
+print()
 print("***************************************")
 print("Additional Feature Engineering: ")
 print("Hearing and location analysis")
@@ -289,6 +291,7 @@ appeals['hearing_loc_match_base'] = appeals.apply(check_hearing_loc_match_base, 
 non_appeals['hearing_loc_match_base'] = non_appeals.apply(check_hearing_loc_match_base, axis=1)
 appeals['hearing_loc_match_base'].value_counts()
 
+print()
 print("***************************************")
 print("Additional Feature Engineering: ")
 print("Average Appeal Grant Rate")
@@ -337,7 +340,7 @@ def compute_last_n_decisions(data, ref, dimension, new_feature_name, max_chunk=5
     start = time.time()
 
     # loop through each chunk
-    for chunk, selected in chunk_assignments.iteritems():
+    for chunk, selected in chunk_assignments.items():
         start_chunk = time.time()
         data_variables = ['idnproceeding', 'datAppealFiled_dt'] + [dimension]
         ref_variables = ['datBIADecision_dt', 'granted'] + [dimension]
@@ -377,6 +380,7 @@ appeals = add_last_n_decisions(data=appeals, ref=appeals, dimension='ij_code_nat
 non_appeals = add_last_n_decisions(data=non_appeals, ref=appeals, dimension='ij_code_nat',
                                    new_feature_name='last_10_appeal_grant_by_judge_nat', last_n=10, max_chunk=50000000)
 
+print()
 print("***************************************")
 print("Outputting processed dataset to csv,")
 print("pickle, and dta")
@@ -439,6 +443,7 @@ appeals_final.to_stata(appeals_dta_fp)
 non_appeals_dta_fp = os.path.join(DATAFOLDER, 'data_for_model/non_appeals_data_final.dta')
 non_appeals_final.to_stata(non_appeals_dta_fp)
 
+print()
 print("***************************************")
 print("Data Preparation Complete")
 print("Note process took {} seconds".format((time.time() - start_time)))
