@@ -445,6 +445,10 @@ appeals_final['idncase'] = appeals_final['idncase'].astype(str)
 appeals_final['idnproceeding'] = appeals_final['idnproceeding'].astype(str)
 non_appeals_final['idncase'] = non_appeals_final['idncase'].astype(str)
 non_appeals_final['idnproceeding'] = non_appeals_final['idnproceeding'].astype(str)
+non_appeals_final['strCustody'] = non_appeals_final['strCustody'].astype(str)
+non_appeals_final['strProbono'] = non_appeals_final['strProbono'].astype(str)
+non_appeals_final['base_city_code'] = non_appeals_final['base_city_code'].astype(str)
+non_appeals_final['hearing_loc_match_base'] = non_appeals_final['hearing_loc_match_base'].astype(str)
 
 # save as .dta
 appeals_dta_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/appeals_data_final.dta')
