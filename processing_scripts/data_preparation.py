@@ -1,7 +1,5 @@
 import numpy as np
 import pandas as pd
-import random
-import matplotlib.pyplot as plt
 import os
 import time
 
@@ -10,6 +8,8 @@ print("Start Data Preparation For the Asylum ")
 print("Appeals:")
 print("Import & Merge Data")
 print("***************************************")
+
+start_time = time.time()
 
 # Imports 3 datasets used for project: (1) Master Proceedings as processed by Dunn, (2) Judge Bios, (3) Appeals
 DATAFOLDER = "/data/Dropbox/Data/Asylum_Courts/"
@@ -438,3 +438,8 @@ appeals_dta_fp = os.path.join(DATAFOLDER, 'data_for_model/appeals_data_final.dta
 appeals_final.to_stata(appeals_dta_fp)
 non_appeals_dta_fp = os.path.join(DATAFOLDER, 'data_for_model/non_appeals_data_final.dta')
 non_appeals_final.to_stata(non_appeals_dta_fp)
+
+print("***************************************")
+print("Data Preparation Complete")
+print("Note process took {} seconds".format((time.time() - start_time)))
+print("***************************************")
