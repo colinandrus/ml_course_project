@@ -11,14 +11,6 @@ import matplotlib.pyplot as plt
 import os
 from xgboost import XGBClassifier
 
-# function to load data 
-
-# def load_data(filename, root_path=DATAFOLDER):
-#     csv_path = os.path.join(root_path, filename)
-#     df = pd.read_csv(csv_path)
-#     return df 
-
-
 # impute missing data
 
 def impute_columns_udf(col, imputation_type): 
@@ -174,47 +166,9 @@ def get_model_data(df, appeals_df, label, cat_features, num_features, impute_met
     return X_train, X_test, y_train, y_test 
 
 
-# # method to split train-test and transform features (for sequential models)
-
-# def get_model_data_by_year(df, appeals_df, label, unique_id, cat_features, num_features, impute_methods, predict_year): 
-#     """ Generates features on data for years prior to predict_year """
-
-#     # add 'datAppealFiled_year' if not in num_features 
-#     if 'datAppealFiled_year' not in num_features: 
-#         num_features_ = num_features + ['datAppealFiled_year'] 
-#     else: 
-#         num_features_ = num_features 
-
-#     # subsets features we are interested in 
-#     cat_feature_values = dict([(f, [str(x) for x in df[f].dropna().unique().tolist()]) for f in cat_features]) 
-#     data = df.set_index(unique_id)
-#     if label is not None: 
-#         data = data[cat_features + num_features_ + [label]].copy() 
-#     else: 
-#         data = data[cat_features + num_features].copy()
-
-#     # train test split 
-#     train_data = data[data['datAppealFiled_year'] < predict_year]
-#     test_data = data[data['datAppealFiled_year'] == predict_year]
-    
-#     # return y=None if label is not passed (used for parsing data for pure predictions)
-#     if label is not None: 
-#         x_train, y_train = train_data.drop(label, axis=1).copy(), train_data[label].copy() 
-#         x_test, y_test = test_data.drop(label, axis=1).copy(), test_data[label].copy() 
-#     else: 
-#         x_train, y_train = train_data, None 
-#         x_test, y_test = test_data, None 
-
-#     # transform 
-#     X_train = transform_features(x_train, appeals_df, cat_features, num_features, impute_methods)
-#     X_test = transform_features(x_test, appeals_df, cat_features, num_features, impute_methods)
-
-#     return X_train, X_test, y_train, y_test 
-
-
 # method to return model evaluation metrics 
 
-def evaluate_model(truth, pred): 
+def evaluate_model(truth, pred, print_cm=False): 
     """ Takes in arrays of truth and pred y values and return accuracy, logloss, roc_auc, and plot ROC """ 
     accuracy = accuracy_score(truth, (pred>0.5).astype(int))
     logloss = log_loss(truth, pred)
@@ -222,6 +176,9 @@ def evaluate_model(truth, pred):
     roc_auc = auc(fpr, tpr)
     precision = precision_score(truth, (pred>0.5).astype(int))
     recall = recall_score(truth, (pred>0.5).astype(int))
+    if print_cm: 
+        print "Confusion Matrix:"
+        print(confusion_matrix(truth, (pred>0.5).astype(int)))
     metrics = {'Accuracy': accuracy, 'ROC AUC': roc_auc, 'Log Loss': logloss, 
                'Precision': precision, 'Recall': recall}
     return metrics
@@ -452,3 +409,51 @@ def plot_sequential_performance(sequential_metrics):
     plt.title('Accuracy and AUC of Sequential Models')
     plt.xlabel('Test Year')
     plt.legend(loc='best') 
+
+
+# tune weight decay 
+
+def tune_weight_decay(df, model, label, cat_features, num_features, impute_methods, start_year, end_year, weight_decay_alphas):
+    results = [] 
+    for alpha in weight_decay_alphas: 
+        result = {} 
+        metrics_summary, _, _ = fit_sequential_models(
+            df, model, 'granted', cat_features=FULL_CAT_FEATURES, num_features=FULL_NUM_FEATURES, 
+            impute_methods=FULL_IMPUTE_METHODS, start_year=start_year, end_year=end_year, weight_decay=alpha, 
+            print_metrics=False, print_charts=False)
+        result['alpha'] = alpha 
+        result['average_accuracy'] = metrics_summary['Accuracy'].mean() 
+        result['average_roc_auc'] = metrics_summary['ROC AUC'].mean() 
+        result['average_log_loss'] = metrics_summary['Log Loss'].mean() 
+        result['average_precision'] = metrics_summary['Precision'].mean() 
+        result['average_recall'] = metrics_summary['Recall'].mean() 
+        results.append(result)
+    return pd.DataFrame(results)
+
+
+# deaverage accuracy and auc by year 
+
+def summarize_perf_by_year(y_test, pred, full_data, start_year, end_year):
+    
+    """ Returns accuracy and roc grouped by year from aggregate model results """
+    
+    # join predictions back to year 
+    agg_results = pd.DataFrame(y_test)
+    agg_results.rename(columns={'granted': 'truth'}, inplace=True)
+    agg_results['pred_proba'] = pred 
+    agg_results['pred'] = (agg_results['pred_proba']>0.5).astype(int)
+    agg_results = agg_results.merge(df[['datAppealFiled_year']], how='left', left_index=True, right_index=True)
+    
+    # loop through each year to get accuracy and auc 
+    results = [] 
+    for year in np.arange(start_year, end_year+1, 1): 
+        result = {}
+        df_year = agg_results[agg_results['datAppealFiled_year'] == year]
+        result['datAppealFiled_year'] = year
+        result['accuracy'] = accuracy_score(df_year['truth'], df_year['pred'])
+        result['roc_auc'] = roc_auc_score(df_year['truth'], df_year['pred_proba'])
+        results.append(result)
+
+    results_df = pd.DataFrame(results).set_index('datAppealFiled_year')
+    return results_df[['accuracy', 'roc_auc']]
+
