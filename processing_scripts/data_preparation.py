@@ -440,6 +440,12 @@ appeals_final.to_pickle(appeals_pkl_fp)
 non_appeals_pkl_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/non_appeals_data_final.pkl')
 non_appeals_final.to_pickle(non_appeals_pkl_fp)
 
+# Needed due to some string corruption for dta conversion
+appeals_final['idncase'] = appeals_final['idncase'].astype(str)
+appeals_final['idnproceeding'] = appeals_final['idnproceeding'].astype(str)
+non_appeals_final['idncase'] = non_appeals_final['idncase'].astype(str)
+non_appeals_final['idnproceeding'] = non_appeals_final['idnproceeding'].astype(str)
+
 # save as .dta
 appeals_dta_fp = os.path.join(DATA_OUT_FOLDER, 'data_for_model/appeals_data_final.dta')
 appeals_final.to_stata(appeals_dta_fp)
