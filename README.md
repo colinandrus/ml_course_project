@@ -2,10 +2,11 @@
 DSGA-1003 Project
 # Instructions for running the project on the Azure server
 We expect the following files to be runnable directly on the server:
-
+```
 data_preparation.py
 model_training_cleaned.ipynb
 data_and_model_analysis.ipynb
+```
 
 ### Data Preparation
 
@@ -43,6 +44,9 @@ ssh -N -f -L localhost:{local port of choice e.g. 8886}:localhost:{port chose on
 ```
 Next open your browser on your local machine at the local host port your chose e.g. http://localhost:8886/
 
+Run the model_training_cleaned.ipynb file for the main analysis (see troubleshooting steps if import fails).
+
+Run the data_and_model_analysis.ipynb file.
 
 
 ### Troubleshooting
@@ -58,3 +62,9 @@ c.NotebookApp.allow_origin = '*'
 c.NotebookApp.ip = '0.0.0.0'
 ```
 
+If the import fails on xgboost, then you must add it to your path like so
+
+```
+import sys
+sys.path.append("/home/{your username}/.conda/envs/appeals_env/lib/python3.6/site-packages")
+```
