@@ -24,12 +24,14 @@ Note that this will create all the data prep result files at /home/dustingodevai
 
 You should see the following files:
 
-appeals_data_final.csv	
-appeals_data_final.dta	
-appeals_data_final.pkl	
-non_appeals_data_final.csv  
-non_appeals_data_final.dta	
+```
+appeals_data_final.csv
+appeals_data_final.dta
+appeals_data_final.pkl
+non_appeals_data_final.csv
+non_appeals_data_final.dta
 non_appeals_data_final.pkl
+```
 
 ### Running the analysis
 ```
